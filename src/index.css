@@ -1,13 +1,346 @@
-body {
+* {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
+  font-family: sans-serif;
+  box-sizing: border-box;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+  background-color: rgba(214, 219, 228, 0.658);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  padding: 10px;
+}
+
+.container {
+  height: 100%;
+  width: 98vw;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  height: 60px;
+  border-radius: 30px;
+  background-color: red;
+  background: url("./assets/headerbg.png") top/cover;
+  display: flex;
+  justify-content: space-between;
+}
+
+.header__calender,
+.header__logo {
+  letter-spacing: 0.15em;
+  font-size: 1.5em;
+  padding: 15px 40px;
+  color: #456078;
+}
+.header__logo {
+  color: #fff;
+}
+
+.main {
+  height: calc(100% - 60px);
+  padding: 10px;
+  border-radius: 30px;
+  display: flex;
+}
+
+/* Todo Display */
+
+.todoDisplay {
+  flex: 1;
+  height: 100%;
+  padding: 10px;
+  margin-right: 10px;
+  border-radius: 30px;
+  background: url("./assets/bg.png") right / cover;
+  position: relative;
+  display: flex;
+  flex-flow: column wrap;
+  align-content: flex-start;
+  overflow: scroll;
+}
+
+.todo {
+  flex: 1;
+  max-height: 300px;
+  width: 270px;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 20px;
+  background-color: rgb(52 85 116 / 98%);
+  box-shadow: 2px 5px 5px rgba(0, 0, 0, 0.2);
+  position: relative;
+
+  font-size: 1.5rem;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.todo__body {
+  padding: 10px;
+  text-align: center;
+}
+
+.todo__timestamp {
+  color: #ddd;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+}
+
+.todo__features {
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px;
+}
+
+.todo__featureImg {
+  height: 50px;
+  width: 50px;
+  margin: 10px;
+}
+
+.todo__markComplete {
+  padding: 10px;
+  width: 70%;
+  text-align: center;
+  font-size: 1rem;
+  letter-spacing: 3px;
+  background-color: #fe5f8d;
+  color: #fff;
+  border-radius: 50px;
+  box-shadow: 0 0 7px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.todo__deleteBtn,
+.todo__detailBtn {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  position: absolute;
+  top: 10px;
+  padding-top: 4px;
+  text-align: center;
+  display: none;
+  cursor: pointer;
+}
+
+.todo__deleteBtn {
+  right: 20px;
+  background-color: #fe5f8d;
+  color: #fff;
+}
+
+.todo__detailBtn {
+  left: 20px;
+  background-color: #fff;
+  color: #fe5f8d;
+}
+
+.todo:hover .todo__deleteBtn,
+.todo:hover .todo__detailBtn {
+  display: block;
+}
+
+.todo__selectionBtn {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.todo--completed {
+  opacity: 0.5;
+}
+
+.todo--completed .todo__markComplete {
+  background-color: #456078;
+}
+
+/* Sidebar */
+
+.sidebar {
+  width: 300px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  color: #456078;
+  margin: 5px;
+  text-align: center;
+}
+
+.filter,
+.analytics,
+.addForm {
+  background-color: #fff;
+  border-radius: 30px;
+  margin-bottom: 10px;
+}
+
+.filter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.filtericons {
+  display: flex;
+  height: 65px;
+  width: 100%;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.filter__icon {
+  height: 50%;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.filter__icon--selected {
+  transform: scale(1.25);
+  opacity: 1 !important;
+}
+
+.analytics {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.analytics__graphic,
+.analytics__data {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border-radius: 50%;
+}
+
+.analytics__graphic {
+  margin: 20px 20px 10px 20px;
+  height: 220px;
+  width: 220px;
+  background-color: #fff;
+  position: relative;
+  box-shadow: 0 0 10px 4px rgba(0, 0, 0, 0.2);
+}
+
+.progressCircle {
+  position: absolute;
+  transform: rotateZ(-90deg);
+}
+.progressStroke {
+  transition: stroke-dashoffset 0.3s linear;
+}
+
+.analytics__data {
+  height: 200px;
+  width: 200px;
+  flex-direction: column;
+  z-index: 5;
+  background-color: #456078;
+  box-shadow: inset 0 0 10px 4px rgba(0, 0, 0, 0.2);
+}
+
+.analytics__percentage,
+.analytics__ratio {
+  text-shadow: 0px 0px 10px #333;
+}
+
+.analytics__percentage {
+  color: #fff;
+  font-size: 3em;
+}
+
+.analytics__ratio {
+  color: #ddd;
+  font-size: 1em;
+}
+
+.addForm {
+  border: 5px solid #fff;
+  display: flex;
+  flex-direction: column;
+
+  margin-top: auto;
+}
+
+.addForm__banner {
+    height: 100px;
+    background-color: #456078;
+    border-radius: 22px 22px 0 0;
+    text-align: center;
+    letter-spacing: 3px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.addForm__message {
+    margin: 10px;
+    margin-top: 20px;
+    height: 45px;
+    border-radius: 30px;
+    border: 1px solid #456078;
+    padding-left: 20px;
+    outline: none;
+    font-size: 1.2em;
+    color: #456078;
+}
+
+.addForm__message::placeholder {
+    color: #456078;
+}
+
+.addForm__select {
+    margin: 10px;
+    height: 45px;
+    padding: 5px 10px;
+    border-radius: 30px;
+    color: #456078;
+    font-size: 1.2em;
+    outline: none;
+}
+
+.addForm__submit {
+    height: 80px;
+    width: 80px;
+    margin: 10px auto;
+    padding-bottom: 8px;
+    border-radius: 50%;
+    background-color: #456078;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 2rem;
+    box-shadow: 0 0 5px rgba(0,0,0,0.4);
+    cursor: pointer;
+}
+
+.addForm__submit:hover {
+    transform: scale(1.1);
 }
