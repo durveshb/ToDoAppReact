@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import Header from "./components/Header";
 import TodoDisplay from "./components/TodoDisplay";
 import Sidebar from "./components/Sidebar";
-import {uuid} from "./helperFunction";
+import { uuid } from "./helperFunction";
 const todos = [
   {
     id: "1",
@@ -44,46 +44,166 @@ const todos = [
 
 export class TodoApp extends Component {
   constructor(props) {
-    super(props);
+    super();
     this.state = {
       todos: todos,
       filter: "NONE",
+      detailedTodo: "NONE",
+      selectedTodos: [],
+      timeline: [[todos, "NONE", "NONE"]],
+      pointInTime: 0,
     };
   }
 
+  componentDidMount() {
+    window.addEventListener("keydown", this.handleKeypress);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.handleKeypress);
+  }
+
+  changeState = (updatedState, addToTimeline) => {
+    const newState = { ...this.state, ...updatedState, selectedTodos: [] };
+    if (addToTimeline) {
+      newState.pointInTime = newState.pointInTime + 1;
+      newState.timeline = [
+        ...newState.timeline.slice(0, newState.pointInTime),
+        [newState.todos, newState.filter, newState.detailedTodo],
+      ];
+    }
+    this.setState(newState);
+  };
+
   handleFilter = (filter) => {
-    this.setState((state) => ({
-      filter: filter === state.filter ? "NONE" : filter,
-    }));
+    const newFilter = filter === this.state.filter ? "NONE" : filter;
+    this.changeState(
+      {
+        filter: newFilter,
+      },
+      true
+    );
   };
 
   handleComplete = (id) => {
+    const targetTodo = this.state.todos.find((todo) => todo.id === id);
+    this.handleChangeDetail(id, { completed: !targetTodo.completed }, true);
+  };
+
+  handleDelete = (id) => {
+    const newTodos = this.state.todos.filter((todo) => todo.id !== id);
+    this.changeState(
+      {
+        todos: newTodos,
+      },
+      true
+    );
+  };
+
+  handleShowDetail = (id) => {
+    this.changeState(
+      {
+        detailedTodo: id,
+      },
+      true
+    );
+  };
+
+  handleCloseDetail = () => {
+    this.changeState(
+      {
+        detailedTodo: "NONE",
+      },
+      true
+    );
+  };
+
+  handleChangeDetail = (id, changeObj) => {
     const targetIndex = this.state.todos.findIndex((todo) => todo.id === id);
     const newTodo = {
       ...this.state.todos[targetIndex],
-      completed: !this.state.todos[targetIndex].completed,
+      ...changeObj,
     };
     const newTodos = this.state.todos
       .slice(0, targetIndex)
       .concat(newTodo, this.state.todos.slice(targetIndex + 1));
 
+    this.changeState(
+      {
+        todos: newTodos,
+        detailedTodo: "NONE",
+      },
+      true
+    );
+  };
+
+  handleSelect = (id) => {
+    let selectedTodos = [];
+    if (id === -1) {
+      this.setState({
+        selectedTodos,
+      });
+      return;
+    }
+
+    if (this.state.selectedTodos.includes(id)) {
+      selectedTodos = this.state.selectedTodos.filter(
+        (todoId) => todoId !== id
+      );
+    } else {
+      selectedTodos = [...this.state.selectedTodos, id];
+    }
     this.setState({
-      todos: newTodos,
+      selectedTodos,
     });
   };
 
-  handleDelete = (id) => {
-    const newTodos = this.state.todos.filter((todo) => todo.id !== id);
-    this.setState({
-      todos: newTodos,
+  handleCompleteSelection = () => {
+    let newTodos = this.state.todos.map((todo) => {
+      if (this.state.selectedTodos.includes(todo.id)) {
+        return { ...todo, completed: true };
+      }
+      return todo;
     });
+
+    this.changeState(
+      {
+        todos: newTodos,
+      },
+      true
+    );
   };
 
-  handleDetail = (id) => {};
+  handleIncompleteSelection = () => {
+    let newTodos = this.state.todos.map((todo) => {
+      if (this.state.selectedTodos.includes(todo.id)) {
+        return { ...todo, completed: false };
+      }
+      return todo;
+    });
 
-  handleSelect = (id) => {};
+    this.changeState(
+      {
+        todos: newTodos,
+      },
+      true
+    );
+  };
 
-  handleAdd = (body,urgency,category) => {
+  handleDeleteSelection = () => {
+    let newTodos = this.state.todos.filter((todo) =>
+      !this.state.selectedTodos.includes(todo.id)
+    );
+
+    this.changeState(
+      {
+        todos: newTodos,
+      },
+      true
+    );
+  };
+
+  handleAdd = (body, urgency, category) => {
     const newTodo = {
       id: uuid(),
       body,
@@ -94,24 +214,67 @@ export class TodoApp extends Component {
       timestamp: new Date().toLocaleString(),
     };
     const newTodos = [...this.state.todos, newTodo];
-    this.setState({
-      todos: newTodos
-    })
-  }
+    this.changeState(
+      {
+        todos: newTodos,
+      },
+      true
+    );
+  };
+
+  handleKeypress = (e) => {
+    if (!e.shiftKey && e.metaKey && e.key === "z") this.handleUndo();
+    else if (e.shiftKey && e.metaKey && e.key === "z") this.handleRedo();
+  };
+
+  handleUndo = () => {
+    if (this.state.pointInTime <= 0) return;
+    const prevPoint = this.state.pointInTime - 1;
+    const prevState = this.state.timeline[prevPoint];
+
+    this.changeState({
+      todos: prevState[0],
+      filter: prevState[1],
+      detailedTodo: prevState[2],
+      pointInTime: prevPoint,
+    });
+  };
+
+  handleRedo = () => {
+    if (this.state.pointInTime >= this.state.timeline.length - 1) return;
+    const nextPoint = this.state.pointInTime + 1;
+    const nextState = this.state.timeline[nextPoint];
+
+    this.changeState({
+      todos: nextState[0],
+      filter: nextState[1],
+      detailedTodo: nextState[2],
+      pointInTime: nextPoint,
+    });
+  };
 
   render() {
     const handlers = {
       complete: this.handleComplete,
       delete: this.handleDelete,
-      detail: this.handleDetail,
+      showDetail: this.handleShowDetail,
+      closeDetail: this.handleCloseDetail,
+      changeDetail: this.handleChangeDetail,
       select: this.handleSelect,
+      completeSelection: this.handleCompleteSelection,
+      incompleteSelection: this.handleIncompleteSelection,
+      deleteSelection: this.handleDeleteSelection,
     };
     return (
       <div className="container">
         <Header />
         <div className="main">
           <TodoDisplay data={this.state} handlers={handlers} />
-          <Sidebar data={this.state} onFilterChange={this.handleFilter} onAdd={this.handleAdd}/>
+          <Sidebar
+            data={this.state}
+            onFilterChange={this.handleFilter}
+            onAdd={this.handleAdd}
+          />
         </div>
       </div>
     );

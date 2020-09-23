@@ -11,6 +11,7 @@ export default function FilterTab(props) {
         : "filter__icon";
     return (
       <img
+        alt={`Filter icon : ${filter.filId}`}
         key={filter.filId}
         data-filid={filter.filId}
         className={myClass}

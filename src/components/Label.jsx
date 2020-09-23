@@ -2,8 +2,8 @@ import React from 'react'
 
 export default function Label(props) {
     return (
-        <h3 className="label">
+        <label className="label">
             {props.name}
-        </h3>
+        </label>
     )
 }

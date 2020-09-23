@@ -3,7 +3,7 @@ import React from "react";
 export default function AnalyticsGraphic(props) {
   const completed = props.completed;
   const total = props.total;
-  const progress = Math.floor((completed * 100) / total);
+  const progress = (total>0)?Math.floor((completed * 100) / total):0;
   const radius = 100;
   const circumference = 2*Math.PI * radius;
   const offset = circumference - circumference*progress/100;
