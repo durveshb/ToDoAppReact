@@ -1,5 +1,6 @@
 import React from "react";
 import TodoFeatures from "./TodoFeatures";
+import Flex from "./baseComponents/flexContainer/Flex";
 import BtnList from "./BtnList";
 
 export default function Todo(props) {
@@ -46,7 +47,7 @@ export default function Todo(props) {
     },
   ];
   return (
-    <div className={todoClass} data-elemtype="todo" data-elemid={props.data.id}>
+    <Flex className={todoClass}>
       <div className="todo__body">{props.data.body}</div>
       <div className="todo__timestamp">{props.data.timestamp}</div>
       <TodoFeatures
@@ -54,6 +55,6 @@ export default function Todo(props) {
         category={props.data.category}
       />
       <BtnList buttons={controls} />
-    </div>
+    </Flex>
   );
 }

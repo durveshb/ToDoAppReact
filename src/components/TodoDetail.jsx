@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import Flex from "./baseComponents/flexContainer/Flex";
 import BtnList from "./BtnList";
 import { urgencyLevels, categories } from "./../appConstants";
 
@@ -36,8 +37,8 @@ export class TodoDetail extends Component {
 
   render() {
     return (
-      <div className="detailWrapper">
-        <div className="detail">
+      <Flex className="detailWrapper">
+        <Flex className="detail">
           <textarea
             className="detail__body"
             value={this.state.body}
@@ -88,8 +89,8 @@ export class TodoDetail extends Component {
           <div className="detail__controls">
             <BtnList buttons={this.controls} />
           </div>
-        </div>
-      </div>
+        </Flex>
+      </Flex>
     );
   }
 }

@@ -1,0 +1,21 @@
+.flex-row {
+  display: flex;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-rowc {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-colc {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

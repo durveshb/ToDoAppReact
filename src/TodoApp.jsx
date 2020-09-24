@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import Flex from "./components/baseComponents/flexContainer/Flex";
 import Header from "./components/Header";
 import TodoDisplay from "./components/TodoDisplay";
 import Sidebar from "./components/Sidebar";
@@ -266,9 +267,9 @@ export class TodoApp extends Component {
 
   render() {
     return (
-      <div className="container">
+      <Flex type="col" className="container">
         <Header />
-        <div className="main">
+        <Flex type="row" className="main">
           <TodoDisplay
             todos={this.state.todos}
             filter={this.state.filter}
@@ -281,8 +282,8 @@ export class TodoApp extends Component {
             filter={this.state.filter}
             handlers={this.sidebarHandlers}
           />
-        </div>
-      </div>
+        </Flex>
+      </Flex>
     );
   }
 }

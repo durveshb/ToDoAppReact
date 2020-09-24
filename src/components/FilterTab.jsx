@@ -1,4 +1,5 @@
 import React from "react";
+import Flex from "./baseComponents/flexContainer/Flex";
 import Label from "./Label";
 import { urgencyLevels, categories } from "./../appConstants";
 
@@ -23,9 +24,9 @@ export default function FilterTab(props) {
     );
   });
   return (
-    <div className="filter">
+    <Flex className="filter">
       <div className="filtericons">{filtericons}</div>
       <Label name="Filter Todos" />
-    </div>
+    </Flex>
   );
 }

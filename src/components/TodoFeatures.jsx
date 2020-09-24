@@ -1,9 +1,10 @@
 import React from "react";
+import Flex from "./baseComponents/flexContainer/Flex";
 import { urgencyLevels, categories } from "./../appConstants";
 
 export default function TodoFeatures(props) {
   return (
-    <div className="todo__features">
+    <Flex type="rowc" className="todo__features">
       <img
         alt="Urgency Icon"
         src={urgencyLevels.find((level) => level.value === props.urgency).src}
@@ -14,6 +15,6 @@ export default function TodoFeatures(props) {
         src={categories.find((level) => level.value === props.category).src}
         className="todo__featureImg"
       />
-    </div>
+    </Flex>
   );
 }

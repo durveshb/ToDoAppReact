@@ -1,5 +1,6 @@
 import React from "react";
 import { urgencyLevels, categories } from "./../appConstants";
+import Flex from "./baseComponents/flexContainer/Flex";
 import Label from "./Label";
 import Button from "./baseComponents/button/Button";
 
@@ -41,10 +42,10 @@ export default class AddForm extends React.Component {
 
   render() {
     return (
-      <div className="addForm">
-        <div className="addForm__banner">
+      <Flex type="col" className="addForm">
+        <Flex className="addForm__banner">
           <h1 className="bannerInner">Create Todo</h1>
-        </div>
+        </Flex>
         <form className="addForm__form" onSubmit={this.handleClick}>
           <input
             ref={this.input}
@@ -73,7 +74,7 @@ export default class AddForm extends React.Component {
             &#43;
           </Button>
         </form>
-      </div>
+      </Flex>
     );
   }
 }
