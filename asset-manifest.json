@@ -1,0 +1,29 @@
+{
+  "files": {
+    "main.css": "/ToDoAppReact/static/css/main.af6f372c.chunk.css",
+    "main.js": "/ToDoAppReact/static/js/main.a2db59de.chunk.js",
+    "main.js.map": "/ToDoAppReact/static/js/main.a2db59de.chunk.js.map",
+    "runtime-main.js": "/ToDoAppReact/static/js/runtime-main.c503ee20.js",
+    "runtime-main.js.map": "/ToDoAppReact/static/js/runtime-main.c503ee20.js.map",
+    "static/js/2.4a77b871.chunk.js": "/ToDoAppReact/static/js/2.4a77b871.chunk.js",
+    "static/js/2.4a77b871.chunk.js.map": "/ToDoAppReact/static/js/2.4a77b871.chunk.js.map",
+    "index.html": "/ToDoAppReact/index.html",
+    "precache-manifest.0e7de827205d65c0d40a3ad9322842dd.js": "/ToDoAppReact/precache-manifest.0e7de827205d65c0d40a3ad9322842dd.js",
+    "service-worker.js": "/ToDoAppReact/service-worker.js",
+    "static/css/main.af6f372c.chunk.css.map": "/ToDoAppReact/static/css/main.af6f372c.chunk.css.map",
+    "static/js/2.4a77b871.chunk.js.LICENSE.txt": "/ToDoAppReact/static/js/2.4a77b871.chunk.js.LICENSE.txt",
+    "static/media/index.css": "/ToDoAppReact/static/media/headerbg.be7fc76a.png",
+    "static/media/catAcademic.svg": "/ToDoAppReact/static/media/catAcademic.ea00a6a9.svg",
+    "static/media/catPersonal.svg": "/ToDoAppReact/static/media/catPersonal.59f3d012.svg",
+    "static/media/catSocial.svg": "/ToDoAppReact/static/media/catSocial.2c039af2.svg",
+    "static/media/urgHigh.svg": "/ToDoAppReact/static/media/urgHigh.ddd50b75.svg",
+    "static/media/urgLow.svg": "/ToDoAppReact/static/media/urgLow.ebcb8ed5.svg",
+    "static/media/urgMedium.svg": "/ToDoAppReact/static/media/urgMedium.76585130.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.c503ee20.js",
+    "static/js/2.4a77b871.chunk.js",
+    "static/css/main.af6f372c.chunk.css",
+    "static/js/main.a2db59de.chunk.js"
+  ]
+}
