@@ -84,16 +84,7 @@ body {
 }
 
 .detail__option {
-  height: 30px;
-  cursor: pointer;
-  opacity: 0.8;
-  margin: 10px 10px;
-  transition: transform 0.2s ease-in;
-}
-
-.detail--selectedOption {
-  transform: scale(1.7);
-  opacity: 1 !important;
+  margin: 10px;
 }
 
 .detail__controls {
@@ -275,19 +266,6 @@ body {
   align-items: center;
 }
 
-.filter__icon {
-  height: 50%;
-  cursor: pointer;
-  opacity: 0.7;
-
-  transition: transform 0.2s ease-in;
-}
-
-.filter__icon--selected {
-  transform: scale(1.25);
-  opacity: 1 !important;
-}
-
 .analytics__graphic,
 .analytics__data {
   position: relative;
@@ -348,7 +326,6 @@ body {
   height: 100px;
   background-color: #456078;
   border-radius: 22px 22px 0 0;
-  text-align: center;
   letter-spacing: 3px;
   color: #fff;
 }

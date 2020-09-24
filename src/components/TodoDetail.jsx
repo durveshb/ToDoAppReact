@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import Flex from "./baseComponents/flexContainer/Flex";
+import IconList from "./IconList";
 import BtnList from "./BtnList";
 import { urgencyLevels, categories } from "./../appConstants";
 
@@ -35,6 +36,18 @@ export class TodoDetail extends Component {
     this.props.onDetailChange(this.props.todo.id, this.state);
   };
 
+  handleUrgencyChange = (id) => {
+    this.setState({
+      urgency: id.split("-")[1],
+    });
+  };
+
+  handleCategoryChange = (id) => {
+    this.setState({
+      category: id.split("-")[1],
+    });
+  };
+
   render() {
     return (
       <Flex className="detailWrapper">
@@ -48,44 +61,22 @@ export class TodoDetail extends Component {
               })
             }
           />
-          <div className="detail__optionContainer">
-            {urgencyLevels.map((level) => (
-              <img
-                src={level.src}
-                alt={level.id}
-                key={level.id}
-                className={
-                  this.state.urgency === level.value
-                    ? "detail__option detail--selectedOption"
-                    : "detail__option"
-                }
-                onClick={(e) =>
-                  this.setState({
-                    urgency: level.value,
-                  })
-                }
-              />
-            ))}
-          </div>
-          <div className="detail__optionContainer">
-            {categories.map((level) => (
-              <img
-                src={level.src}
-                alt={level.id}
-                key={level.id}
-                className={
-                  this.state.category === level.value
-                    ? "detail__option detail--selectedOption"
-                    : "detail__option"
-                }
-                onClick={(e) =>
-                  this.setState({
-                    category: level.value,
-                  })
-                }
-              />
-            ))}
-          </div>
+          <IconList
+            icons={urgencyLevels}
+            size="md"
+            selectedId={`ug-${this.state.urgency}`}
+            handleClick={this.handleUrgencyChange}
+            containerClass="detail__optionContainer"
+            iconClassName="detail__option"
+          />
+          <IconList
+            icons={categories}
+            size="md"
+            selectedId={`ct-${this.state.category}`}
+            handleClick={this.handleCategoryChange}
+            containerClass="detail__optionContainer"
+            iconClassName="detail__option"
+          />
           <div className="detail__controls">
             <BtnList buttons={this.controls} />
           </div>
