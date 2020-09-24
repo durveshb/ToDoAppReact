@@ -1,43 +1,59 @@
 import React from "react";
-import { urgencyLevels, categories } from "./../appConstants";
+import TodoFeatures from "./TodoFeatures";
+import BtnList from "./BtnList";
 
 export default function Todo(props) {
   let todoClass = "todo";
   todoClass += props.data.completed ? " todo--completed" : "";
   todoClass += props.isSelected ? " todo--selected" : "";
+
+  const controls = [
+    {
+      type: "pill",
+      theme: "active",
+      className: "btn-complete",
+      size: "md",
+      innerHTML: props.data.completed ? "Completed. Undo?" : "Mark Complete",
+      handleClick: () => {
+        props.handlers.complete(props.data.id);
+      },
+    },
+    {
+      type: "disk",
+      theme: "active",
+      className: "btn-delete",
+      innerHTML: "\u2612",
+      handleClick: () => {
+        props.handlers.delete(props.data.id);
+      },
+    },
+    {
+      type: "disk",
+      theme: "active",
+      className: "btn-detail",
+      innerHTML: "\u270E",
+      handleClick: () => {
+        props.handlers.showDetail(props.data.id);
+      },
+    },
+    {
+      type: "disk",
+      className: "btn-select",
+      size: "sm",
+      handleClick: () => {
+        props.handlers.select(props.data.id);
+      },
+    },
+  ];
   return (
     <div className={todoClass} data-elemtype="todo" data-elemid={props.data.id}>
       <div className="todo__body">{props.data.body}</div>
       <div className="todo__timestamp">{props.data.timestamp}</div>
-      <div className="todo__features">
-        <img
-          alt="Urgency Icon"
-          src={
-            urgencyLevels.find((level) => level.value === props.data.urgency)
-              .src
-          }
-          className="todo__featureImg"
-        />
-        <img
-          alt="Category Icon"
-          src={
-            categories.find((level) => level.value === props.data.category).src
-          }
-          className="todo__featureImg"
-        />
-      </div>
-      <div className="todo__markComplete" onClick={()=>{
-          props.handlers.complete(props.data.id)
-      }}>Mark Complete</div>
-      <div className="todo__deleteBtn" onClick={()=>{
-          props.handlers.delete(props.data.id)
-      }}>&times;</div>
-      <div className="todo__detailBtn" onClick={()=>{
-          props.handlers.showDetail(props.data.id)
-      }}>&#9998;</div>
-      <div className="todo__selectionBtn" onClick={()=>{
-          props.handlers.select(props.data.id)
-      }}></div>
+      <TodoFeatures
+        urgency={props.data.urgency}
+        category={props.data.category}
+      />
+      <BtnList buttons={controls} />
     </div>
   );
 }

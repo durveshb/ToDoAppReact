@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import BtnList from "./BtnList";
 import { urgencyLevels, categories } from "./../appConstants";
 
 export class TodoDetail extends Component {
@@ -9,10 +10,28 @@ export class TodoDetail extends Component {
       urgency: this.props.todo.urgency,
       category: this.props.todo.category,
     };
+    this.controls = [
+      {
+        type: "pill",
+        theme: "active",
+        className: "detail__btn",
+        size: "sm",
+        innerHTML: "Cancel",
+        handleClick: this.props.onClose,
+      },
+      {
+        type: "pill",
+        theme: "passive",
+        className: "detail__btn",
+        size: "sm",
+        innerHTML: "Save",
+        handleClick: this.saveChange,
+      },
+    ];
   }
 
   saveChange = () => {
-      this.props.onDetailChange(this.props.todo.id, this.state);
+    this.props.onDetailChange(this.props.todo.id, this.state);
   };
 
   render() {
@@ -32,8 +51,8 @@ export class TodoDetail extends Component {
             {urgencyLevels.map((level) => (
               <img
                 src={level.src}
-                alt={level.filId}
-                key={level.filId}
+                alt={level.id}
+                key={level.id}
                 className={
                   this.state.urgency === level.value
                     ? "detail__option detail--selectedOption"
@@ -51,8 +70,8 @@ export class TodoDetail extends Component {
             {categories.map((level) => (
               <img
                 src={level.src}
-                alt={level.filId}
-                key={level.filId}
+                alt={level.id}
+                key={level.id}
                 className={
                   this.state.category === level.value
                     ? "detail__option detail--selectedOption"
@@ -67,18 +86,7 @@ export class TodoDetail extends Component {
             ))}
           </div>
           <div className="detail__controls">
-            <button
-              className="detail__btn detailCancelBtn"
-              onClick={this.props.onClose}
-            >
-              Cancel
-            </button>
-            <button
-              className="detail__btn detailSaveBtn"
-              onClick={this.saveChange}
-            >
-              Save
-            </button>
+            <BtnList buttons={this.controls} />
           </div>
         </div>
       </div>

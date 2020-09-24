@@ -1,11 +1,36 @@
-import React from 'react'
+import React from "react";
+import BtnList from "./BtnList";
 
 export default function BulkTools(props) {
-    return (
-        <div className="toolmenu">
-            <button className="tool tool__complete" onClick={props.onComplete}>&#9745;</button>
-            <button className="tool tool__incomplete" onClick={props.onIncomplete}>&#9744;</button>
-            <button className="tool tool__delete" onClick={props.onDelete}>&#9746;</button>
-        </div>
-    )
+  const controls = [
+    {
+      type: "disk",
+      theme: "passive",
+      className: "tool tool__complete",
+      size: "md",
+      innerHTML: "\u2611",
+      handleClick: props.onComplete,
+    },
+    {
+      type: "disk",
+      theme: "passive",
+      className: "tool tool__incomplete",
+      size: "md",
+      innerHTML: "\u2610",
+      handleClick: props.onIncomplete,
+    },
+    {
+      type: "disk",
+      theme: "passive",
+      className: "tool tool__delete",
+      size: "md",
+      innerHTML: "\u2612",
+      handleClick: props.onDelete,
+    },
+  ];
+  return (
+    <div className="toolmenu">
+      <BtnList buttons={controls} />
+    </div>
+  );
 }

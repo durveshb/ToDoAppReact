@@ -7,11 +7,11 @@ export default function Sidebar(props) {
   return (
     <div className="sidebar">
       <FilterTab
-        activeFilter={props.data.filter}
-        onFilterChange={props.onFilterChange}
+        activeFilter={props.filter}
+        onFilterChange={props.handlers.filter}
       />
-      <Analytics data={props.data}/>
-      <AddForm onAdd={props.onAdd}/>
+      <Analytics todos={props.todos} filter={props.filter} />
+      <AddForm onSubmit={props.handlers.add} />
     </div>
   );
 }

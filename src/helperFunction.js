@@ -20,3 +20,37 @@ export const uuid = (function () {
     return uid.toString();
   };
 })();
+
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const days = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+export function getDateString() {
+  const currDate = new Date();
+  const dateString = `${days[currDate.getDay()]}, ${
+    months[currDate.getMonth()]
+  } ${currDate.getDate()}`;
+
+  return dateString;
+}

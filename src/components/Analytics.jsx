@@ -4,7 +4,7 @@ import Label from "./Label";
 import { filterTodos } from "./../helperFunction";
 
 export default function analytics(props) {
-  const filteredTodos = filterTodos(props.data.todos, props.data.filter);
+  const filteredTodos = filterTodos(props.todos, props.filter);
   const completed = filteredTodos.filter((todo) => todo.completed).length;
   const total = filteredTodos.length;
   return (

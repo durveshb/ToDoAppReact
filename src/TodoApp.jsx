@@ -43,7 +43,7 @@ const todos = [
 ];
 
 export class TodoApp extends Component {
-  constructor(props) {
+  constructor() {
     super();
     this.state = {
       todos: todos,
@@ -52,6 +52,21 @@ export class TodoApp extends Component {
       selectedTodos: [],
       timeline: [[todos, "NONE", "NONE"]],
       pointInTime: 0,
+    };
+    this.todoHandlers = {
+      complete: this.handleComplete,
+      delete: this.handleDelete,
+      showDetail: this.handleShowDetail,
+      closeDetail: this.handleCloseDetail,
+      changeDetail: this.handleChangeDetail,
+      select: this.handleSelect,
+      completeSelection: this.handleCompleteSelection,
+      incompleteSelection: this.handleIncompleteSelection,
+      deleteSelection: this.handleDeleteSelection,
+    };
+    this.sidebarHandlers = {
+      filter: this.handleFilter,
+      add: this.handleAdd,
     };
   }
 
@@ -158,10 +173,10 @@ export class TodoApp extends Component {
     });
   };
 
-  handleCompleteSelection = () => {
+  toggleSelection = (value) => {
     let newTodos = this.state.todos.map((todo) => {
       if (this.state.selectedTodos.includes(todo.id)) {
-        return { ...todo, completed: true };
+        return { ...todo, completed: value };
       }
       return todo;
     });
@@ -172,27 +187,19 @@ export class TodoApp extends Component {
       },
       true
     );
+  };
+
+  handleCompleteSelection = () => {
+    this.toggleSelection(true);
   };
 
   handleIncompleteSelection = () => {
-    let newTodos = this.state.todos.map((todo) => {
-      if (this.state.selectedTodos.includes(todo.id)) {
-        return { ...todo, completed: false };
-      }
-      return todo;
-    });
-
-    this.changeState(
-      {
-        todos: newTodos,
-      },
-      true
-    );
+    this.toggleSelection(false);
   };
 
   handleDeleteSelection = () => {
-    let newTodos = this.state.todos.filter((todo) =>
-      !this.state.selectedTodos.includes(todo.id)
+    let newTodos = this.state.todos.filter(
+      (todo) => !this.state.selectedTodos.includes(todo.id)
     );
 
     this.changeState(
@@ -230,12 +237,14 @@ export class TodoApp extends Component {
   handleUndo = () => {
     if (this.state.pointInTime <= 0) return;
     const prevPoint = this.state.pointInTime - 1;
-    const prevState = this.state.timeline[prevPoint];
+    const [prevTodos, prevFilter, prevDetailedTodo] = this.state.timeline[
+      prevPoint
+    ];
 
     this.changeState({
-      todos: prevState[0],
-      filter: prevState[1],
-      detailedTodo: prevState[2],
+      todos: prevTodos,
+      filter: prevFilter,
+      detailedTodo: prevDetailedTodo,
       pointInTime: prevPoint,
     });
   };
@@ -243,37 +252,34 @@ export class TodoApp extends Component {
   handleRedo = () => {
     if (this.state.pointInTime >= this.state.timeline.length - 1) return;
     const nextPoint = this.state.pointInTime + 1;
-    const nextState = this.state.timeline[nextPoint];
+    const [nextTodos, nextFilter, nextDetailedTodo] = this.state.timeline[
+      nextPoint
+    ];
 
     this.changeState({
-      todos: nextState[0],
-      filter: nextState[1],
-      detailedTodo: nextState[2],
+      todos: nextTodos,
+      filter: nextFilter,
+      detailedTodo: nextDetailedTodo,
       pointInTime: nextPoint,
     });
   };
 
   render() {
-    const handlers = {
-      complete: this.handleComplete,
-      delete: this.handleDelete,
-      showDetail: this.handleShowDetail,
-      closeDetail: this.handleCloseDetail,
-      changeDetail: this.handleChangeDetail,
-      select: this.handleSelect,
-      completeSelection: this.handleCompleteSelection,
-      incompleteSelection: this.handleIncompleteSelection,
-      deleteSelection: this.handleDeleteSelection,
-    };
     return (
       <div className="container">
         <Header />
         <div className="main">
-          <TodoDisplay data={this.state} handlers={handlers} />
+          <TodoDisplay
+            todos={this.state.todos}
+            filter={this.state.filter}
+            detailedTodo={this.state.detailedTodo}
+            selectedTodos={this.state.selectedTodos}
+            handlers={this.todoHandlers}
+          />
           <Sidebar
-            data={this.state}
-            onFilterChange={this.handleFilter}
-            onAdd={this.handleAdd}
+            todos={this.state.todos}
+            filter={this.state.filter}
+            handlers={this.sidebarHandlers}
           />
         </div>
       </div>

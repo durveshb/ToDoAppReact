@@ -6,31 +6,31 @@ import catAca from "./assets/catAcademic.svg";
 import catSoc from "./assets/catSocial.svg";
 
 export const urgencyLevels = [
-  { filId: "ug-1", name: "Low", value: "1", src: urgLow },
+  { id: "ug-1", name: "Low", value: "1", src: urgLow },
   {
-    filId: "ug-2",
+    id: "ug-2",
     name: "Medium",
     value: "2",
     src: urgMedium,
   },
-  { filId: "ug-3", name: "High", value: "3", src: urgHigh },
+  { id: "ug-3", name: "High", value: "3", src: urgHigh },
 ];
 
 export const categories = [
   {
-    filId: "ct-1",
+    id: "ct-1",
     name: "Personal",
     value: "1",
     src: catPer,
   },
   {
-    filId: "ct-2",
+    id: "ct-2",
     name: "Academic",
     value: "2",
     src: catAca,
   },
   {
-    filId: "ct-3",
+    id: "ct-3",
     name: "Social",
     value: "3",
     src: catSoc,
