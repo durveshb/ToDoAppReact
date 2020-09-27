@@ -114,6 +114,15 @@ body {
   overflow: scroll;
 }
 
+.noTodos {
+  width: 100%;
+  margin: 30px;
+  letter-spacing: 2px;
+  color: #456078;
+  text-align: center;
+  font-family: sans-serif;
+}
+
 .todo {
   flex: 1;
   max-height: 300px;
