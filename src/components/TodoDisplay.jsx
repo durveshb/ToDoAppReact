@@ -18,8 +18,15 @@ export default function TodoDisplay(props) {
   const detailedTodo = props.todos.find(
     (todo) => todo.id === props.detailedTodo
   );
+
+  const clearSelection = (e) => {
+    if (e.target === e.currentTarget) {
+      props.handlers.select(-1);
+    }
+  };
+
   return (
-    <div className="todoDisplay">
+    <div className="todoDisplay" onClick={clearSelection}>
       {props.todos.length === 0 ? (
         <Flex className="noTodos">
           You haven't added any todos yet. Got anything on top of your mind?

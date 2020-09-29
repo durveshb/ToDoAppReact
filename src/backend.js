@@ -5,19 +5,17 @@ export default function serverSide() {
     upgrade(db) {
       console.log("Making a new TodoBase");
       if (!db.objectStoreNames.contains("TodoStore")) {
-        db.createObjectStore("TodoStore", {
+        const store = db.createObjectStore("TodoStore", {
           keyPath: "id",
-          autoIncrement: true,
         });
+        store.createIndex("timestamp", "timestamp");
       }
     },
   });
 
   function getAllTodos() {
     return database.then((db) => {
-      const tx = db.transaction("TodoStore", "readonly");
-      const store = tx.objectStore("TodoStore");
-      return store.getAll();
+      return db.getAllFromIndex("TodoStore", "timestamp");
     });
   }
 
@@ -57,6 +55,15 @@ export default function serverSide() {
     });
   }
 
+  function addMultiple(newTodos) {
+    return database.then((db) => {
+      const tx = db.transaction("TodoStore", "readwrite");
+      const store = tx.objectStore("TodoStore");
+      newTodos.forEach((newTodo) => store.add(newTodo));
+      return tx.complete;
+    });
+  }
+
   function deleteMultiple(todoIds) {
     return database.then((db) => {
       const tx = db.transaction("TodoStore", "readwrite");
@@ -73,5 +80,6 @@ export default function serverSide() {
     updateTodo,
     updateSelection,
     deleteMultiple,
+    addMultiple,
   };
 }

@@ -1,48 +1,10 @@
 import React, { Component } from "react";
+import { v4 as uuidv4 } from "uuid";
 import Flex from "./components/baseComponents/flexContainer/Flex";
 import Header from "./components/Header";
 import TodoDisplay from "./components/TodoDisplay";
 import Sidebar from "./components/Sidebar";
 import serverSide from "./backend";
-
-// const todos = [
-//   {
-//     id: "1",
-//     body: "Get the groceries",
-//     category: "1",
-//     completed: false,
-//     urgency: "1",
-//     pin: false,
-//     timestamp: "22/08/2020, 14:01:29",
-//   },
-//   {
-//     id: "2",
-//     body: "Have you created your todo list app yet",
-//     category: "2",
-//     completed: false,
-//     urgency: "3",
-//     pin: false,
-//     timestamp: "23/08/2020, 17:23:42",
-//   },
-//   {
-//     id: "3",
-//     body: "Pick up andrew from ballet class",
-//     category: "1",
-//     completed: true,
-//     urgency: "1",
-//     pin: false,
-//     timestamp: "29/08/2020, 20:17:05",
-//   },
-//   {
-//     id: "4",
-//     body: "Update Instagram. It's been ages",
-//     category: "3",
-//     completed: true,
-//     urgency: "2",
-//     pin: true,
-//     timestamp: "03/09/2020, 11:45:51",
-//   },
-// ];
 
 export class TodoApp extends Component {
   constructor() {
@@ -52,7 +14,7 @@ export class TodoApp extends Component {
       filter: "NONE",
       detailedTodo: "NONE",
       selectedTodos: [],
-      timeline: [[[], "NONE", "NONE"]],
+      timeline: [],
       pointInTime: 0,
     };
     this.server = null;
@@ -61,105 +23,182 @@ export class TodoApp extends Component {
       delete: this.handleDelete,
       showDetail: this.handleShowDetail,
       closeDetail: this.handleCloseDetail,
-      changeDetail: this.handleChangeDetail,
+      changeDetail: this.handleChangeDetailHelper,
       select: this.handleSelect,
       completeSelection: this.handleCompleteSelection,
       incompleteSelection: this.handleIncompleteSelection,
-      deleteSelection: this.handleDeleteSelection,
+      deleteSelection: this.deleteSelectionHelper,
     };
     this.sidebarHandlers = {
       filter: this.handleFilter,
-      add: this.handleAdd,
+      add: this.handleAddHelper,
     };
   }
 
   componentDidMount() {
     this.server = serverSide();
     this.server.getAllTodos().then((todos) => {
-      this.changeState(
-        {
-          todos,
-        },
-        true
-      );
+      this.setState({
+        todos,
+      });
     });
     window.addEventListener("keydown", this.handleKeypress);
   }
 
-  componentWillUnmount() {
-    window.removeEventListener("keydown", this.handleKeypress);
-  }
-
-  changeState = (updatedState, addToTimeline) => {
-    const newState = { ...this.state, ...updatedState, selectedTodos: [] };
-    if (addToTimeline) {
-      newState.pointInTime = newState.pointInTime + 1;
-      newState.timeline = [
-        ...newState.timeline.slice(0, newState.pointInTime),
-        [newState.todos, newState.filter, newState.detailedTodo],
-      ];
-    }
-    this.setState(newState);
+  addToTimeline = (timelineNode) => {
+    const newTimeline = [
+      ...this.state.timeline.slice(0, this.state.pointInTime),
+    ];
+    newTimeline.push(timelineNode);
+    return newTimeline;
   };
 
-  handleFilter = (filter) => {
+  handleFilter = (filter, isRegistered = true) => {
     const newFilter = filter === this.state.filter ? "NONE" : filter;
-    this.changeState(
-      {
+
+    if (isRegistered) {
+      const timelineNode = {
+        action: {
+          type: "FilChange",
+          params: [newFilter],
+        },
+        counter: {
+          type: "FilChange",
+          params: [this.state.filter],
+        },
+      };
+
+      this.setState((state) => ({
         filter: newFilter,
-      },
-      true
-    );
+        timeline: this.addToTimeline(timelineNode),
+        pointInTime: state.pointInTime + 1,
+      }));
+    } else {
+      this.setState({
+        filter: newFilter,
+      });
+    }
   };
 
-  handleComplete = (id) => {
-    const targetTodo = this.state.todos.find((todo) => todo.id === id);
-    this.handleChangeDetail(id, { completed: !targetTodo.completed });
+  handleAddHelper = (body, urgency, category) => {
+    const newTodo = {
+      id: uuidv4(),
+      body,
+      urgency,
+      category,
+      completed: false,
+      pinned: false,
+      timestamp: new Date().toLocaleString(),
+    };
+    this.handleAdd(newTodo);
   };
 
-  handleDelete = (id) => {
-    this.server.deleteTodo(id).then(() => {
+  handleAdd = (newTodo, isRegistered = true) => {
+    this.server.addTodo(newTodo).then(() => {
       this.server.getAllTodos().then((todos) => {
-        this.changeState(
-          {
+        if (isRegistered) {
+          const timelineNode = {
+            action: {
+              type: "Add",
+              params: [newTodo],
+            },
+            counter: {
+              type: "Delete",
+              params: [newTodo.id],
+            },
+          };
+          this.setState((state) => ({
             todos,
-          },
-          true
-        );
+            timeline: this.addToTimeline(timelineNode),
+            pointInTime: state.pointInTime + 1,
+          }));
+        } else {
+          this.setState({
+            todos,
+          });
+        }
       });
     });
   };
 
+  handleDelete = (id, isRegistered = true) => {
+    this.server.deleteTodo(id).then(() => {
+      this.server.getAllTodos().then((todos) => {
+        if (isRegistered) {
+          const deletedTodo = this.state.todos.find((todo) => todo.id === id);
+          const timelineNode = {
+            action: {
+              type: "Delete",
+              params: [id],
+            },
+            counter: {
+              type: "Add",
+              params: [deletedTodo],
+            },
+          };
+          this.setState((state) => ({
+            todos,
+            timeline: this.addToTimeline(timelineNode),
+            pointInTime: state.pointInTime + 1,
+          }));
+        } else {
+          this.setState({
+            todos,
+          });
+        }
+      });
+    });
+  };
+
+  handleComplete = (id) => {
+    const targetTodo = this.state.todos.find((todo) => todo.id === id);
+    this.handleChangeDetailHelper(id, { completed: !targetTodo.completed });
+  };
+
   handleShowDetail = (id) => {
-    this.changeState(
-      {
-        detailedTodo: id,
-      },
-      true
-    );
+    this.setState({
+      detailedTodo: id,
+    });
   };
 
   handleCloseDetail = () => {
-    this.changeState(
-      {
-        detailedTodo: "NONE",
-      },
-      true
-    );
+    this.setState({
+      detailedTodo: "NONE",
+    });
   };
 
-  handleChangeDetail = (id, changeObj) => {
+  handleChangeDetailHelper = (id, changeObj) => {
     const targetTodo = this.state.todos.find((todo) => todo.id === id);
     const newTodo = { ...targetTodo, ...changeObj };
+    this.handleChangeDetail(newTodo, targetTodo);
+  };
+
+  handleChangeDetail = (newTodo, oldTodo, isRegistered = true) => {
     this.server.updateTodo(newTodo).then(() => {
       this.server.getAllTodos().then((todos) => {
-        this.changeState(
-          {
+        if (isRegistered) {
+          const timelineNode = {
+            action: {
+              type: "Edit",
+              params: [newTodo, oldTodo],
+            },
+            counter: {
+              type: "Edit",
+              params: [oldTodo, newTodo],
+            },
+          };
+          this.setState((state) => ({
             todos,
             detailedTodo: "NONE",
-          },
-          true
-        );
+            timeline: this.addToTimeline(timelineNode),
+            pointInTime: state.pointInTime + 1,
+          }));
+        } else {
+          this.setState({
+            todos,
+            detailedTodo: "NONE",
+          });
+        }
       });
     });
   };
@@ -184,6 +223,47 @@ export class TodoApp extends Component {
     });
   };
 
+  editMultiple = (newTodos, isRegistered = true) => {
+    this.server.updateSelection(newTodos).then(() => {
+      this.server.getAllTodos().then((todos) => {
+        if (isRegistered) {
+          const timelineNode = {
+            action: {
+              type: "EditMultiple",
+              params: [todos],
+            },
+            counter: {
+              type: "EditMultiple",
+              params: [[...this.state.todos]],
+            },
+          };
+          this.setState((state) => ({
+            todos,
+            timeline: this.addToTimeline(timelineNode),
+            pointInTime: state.pointInTime + 1,
+            selectedTodos: [],
+          }));
+        } else {
+          this.setState({
+            todos,
+            selectedTodos: [],
+          });
+        }
+      });
+    });
+  };
+
+  addMultiple = (todos) => {
+    this.server.addMultiple(todos).then(() => {
+      this.server.getAllTodos().then((todos) => {
+        this.setState({
+          todos,
+          selectedTodos: [],
+        });
+      });
+    });
+  };
+
   toggleSelection = (value) => {
     let newTodos = this.state.todos.map((todo) => {
       if (this.state.selectedTodos.includes(todo.id)) {
@@ -192,16 +272,7 @@ export class TodoApp extends Component {
       return todo;
     });
 
-    this.server.updateSelection(newTodos).then(() => {
-      this.server.getAllTodos().then((todos) => {
-        this.changeState(
-          {
-            todos,
-          },
-          true
-        );
-      });
-    });
+    this.editMultiple(newTodos);
   };
 
   handleCompleteSelection = () => {
@@ -212,36 +283,40 @@ export class TodoApp extends Component {
     this.toggleSelection(false);
   };
 
-  handleDeleteSelection = () => {
-    this.server.deleteMultiple(this.state.selectedTodos).then(() => {
-      this.server.getAllTodos().then((todos) => {
-        this.changeState(
-          {
-            todos,
-          },
-          true
-        );
-      });
-    });
+  deleteSelectionHelper = () => {
+    this.deleteMultiple([...this.state.selectedTodos]);
   };
 
-  handleAdd = (body, urgency, category) => {
-    const newTodo = {
-      body,
-      urgency,
-      category,
-      completed: false,
-      pinned: false,
-      timestamp: new Date().toLocaleString(),
-    };
-    this.server.addTodo(newTodo).then(() => {
+  deleteMultiple = (selectedTodoIds, isRegistered = true) => {
+    this.server.deleteMultiple(selectedTodoIds).then(() => {
       this.server.getAllTodos().then((todos) => {
-        this.changeState(
-          {
+        if (isRegistered) {
+          const selectedTodos = this.state.todos.filter((todo) =>
+            selectedTodoIds.includes(todo.id)
+          );
+          const timelineNode = {
+            action: {
+              type: "DeleteMultiple",
+              params: [selectedTodoIds],
+            },
+            counter: {
+              type: "AddMultiple",
+              params: [selectedTodos],
+            },
+          };
+
+          this.setState((state) => ({
             todos,
-          },
-          true
-        );
+            selectedTodos: [],
+            timeline: this.addToTimeline(timelineNode),
+            pointInTime: state.pointInTime + 1,
+          }));
+        } else {
+          this.setState({
+            todos,
+            selectedTodos: [],
+          });
+        }
       });
     });
   };
@@ -254,31 +329,50 @@ export class TodoApp extends Component {
   handleUndo = () => {
     if (this.state.pointInTime <= 0) return;
     const prevPoint = this.state.pointInTime - 1;
-    const [prevTodos, prevFilter, prevDetailedTodo] = this.state.timeline[
-      prevPoint
-    ];
+    const { counter } = this.state.timeline[prevPoint];
 
-    this.changeState({
-      todos: prevTodos,
-      filter: prevFilter,
-      detailedTodo: prevDetailedTodo,
+    this.setState((state) => ({
       pointInTime: prevPoint,
-    });
+    }));
+    this.dispatch(counter);
   };
 
   handleRedo = () => {
-    if (this.state.pointInTime >= this.state.timeline.length - 1) return;
-    const nextPoint = this.state.pointInTime + 1;
-    const [nextTodos, nextFilter, nextDetailedTodo] = this.state.timeline[
-      nextPoint
-    ];
+    if (this.state.pointInTime >= this.state.timeline.length) return;
+    const pointInTime = this.state.pointInTime;
+    const { action } = this.state.timeline[pointInTime];
 
-    this.changeState({
-      todos: nextTodos,
-      filter: nextFilter,
-      detailedTodo: nextDetailedTodo,
-      pointInTime: nextPoint,
+    this.setState({
+      pointInTime: pointInTime + 1,
     });
+    this.dispatch(action);
+  };
+
+  dispatch = ({ type, params }) => {
+    switch (type) {
+      case "Delete":
+        this.handleDelete(...params, false);
+        break;
+      case "Add":
+        this.handleAdd(...params, false);
+        break;
+      case "Edit":
+        this.handleChangeDetail(...params, false);
+        break;
+      case "AddMultiple":
+        this.addMultiple(...params);
+        break;
+      case "DeleteMultiple":
+        this.deleteMultiple(...params, false);
+        break;
+      case "EditMultiple":
+        this.editMultiple(...params, false);
+        break;
+      case "FilChange":
+        this.handleFilter(...params, false);
+        break;
+      default:
+    }
   };
 
   render() {
