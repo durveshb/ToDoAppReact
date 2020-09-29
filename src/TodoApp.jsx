@@ -53,31 +53,42 @@ export class TodoApp extends Component {
     return newTimeline;
   };
 
+  getTimelinedState = (
+    actionType,
+    actionParams,
+    counterType,
+    counterParams
+  ) => {
+    const timelineNode = {
+      action: {
+        type: actionType,
+        params: actionParams,
+      },
+      counter: {
+        type: counterType,
+        params: counterParams,
+      },
+    };
+
+    return {
+      timeline: this.addToTimeline(timelineNode),
+      pointInTime: this.state.pointInTime + 1,
+    };
+  };
+
   handleFilter = (filter, isRegistered = true) => {
     const newFilter = filter === this.state.filter ? "NONE" : filter;
 
-    if (isRegistered) {
-      const timelineNode = {
-        action: {
-          type: "FilChange",
-          params: [newFilter],
-        },
-        counter: {
-          type: "FilChange",
-          params: [this.state.filter],
-        },
-      };
+    const timelinedState = isRegistered
+      ? this.getTimelinedState("FilChange", [newFilter], "FilChange", [
+          this.state.filter,
+        ])
+      : {};
 
-      this.setState((state) => ({
-        filter: newFilter,
-        timeline: this.addToTimeline(timelineNode),
-        pointInTime: state.pointInTime + 1,
-      }));
-    } else {
-      this.setState({
-        filter: newFilter,
-      });
-    }
+    this.setState({
+      filter: newFilter,
+      ...timelinedState,
+    });
   };
 
   handleAddHelper = (body, urgency, category) => {
@@ -96,27 +107,13 @@ export class TodoApp extends Component {
   handleAdd = (newTodo, isRegistered = true) => {
     this.server.addTodo(newTodo).then(() => {
       this.server.getAllTodos().then((todos) => {
-        if (isRegistered) {
-          const timelineNode = {
-            action: {
-              type: "Add",
-              params: [newTodo],
-            },
-            counter: {
-              type: "Delete",
-              params: [newTodo.id],
-            },
-          };
-          this.setState((state) => ({
-            todos,
-            timeline: this.addToTimeline(timelineNode),
-            pointInTime: state.pointInTime + 1,
-          }));
-        } else {
-          this.setState({
-            todos,
-          });
-        }
+        const timelinedState = isRegistered
+          ? this.getTimelinedState("Add", [newTodo], "Delete", [newTodo.id])
+          : {};
+        this.setState({
+          todos,
+          ...timelinedState,
+        });
       });
     });
   };
@@ -124,28 +121,14 @@ export class TodoApp extends Component {
   handleDelete = (id, isRegistered = true) => {
     this.server.deleteTodo(id).then(() => {
       this.server.getAllTodos().then((todos) => {
-        if (isRegistered) {
-          const deletedTodo = this.state.todos.find((todo) => todo.id === id);
-          const timelineNode = {
-            action: {
-              type: "Delete",
-              params: [id],
-            },
-            counter: {
-              type: "Add",
-              params: [deletedTodo],
-            },
-          };
-          this.setState((state) => ({
-            todos,
-            timeline: this.addToTimeline(timelineNode),
-            pointInTime: state.pointInTime + 1,
-          }));
-        } else {
-          this.setState({
-            todos,
-          });
-        }
+        const deletedTodo = this.state.todos.find((todo) => todo.id === id);
+        const timelinedState = isRegistered
+          ? this.getTimelinedState("Delete", [id], "Add", [deletedTodo])
+          : {};
+        this.setState({
+          todos,
+          ...timelinedState,
+        });
       });
     });
   };
@@ -176,29 +159,17 @@ export class TodoApp extends Component {
   handleChangeDetail = (newTodo, oldTodo, isRegistered = true) => {
     this.server.updateTodo(newTodo).then(() => {
       this.server.getAllTodos().then((todos) => {
-        if (isRegistered) {
-          const timelineNode = {
-            action: {
-              type: "Edit",
-              params: [newTodo, oldTodo],
-            },
-            counter: {
-              type: "Edit",
-              params: [oldTodo, newTodo],
-            },
-          };
-          this.setState((state) => ({
-            todos,
-            detailedTodo: "NONE",
-            timeline: this.addToTimeline(timelineNode),
-            pointInTime: state.pointInTime + 1,
-          }));
-        } else {
-          this.setState({
-            todos,
-            detailedTodo: "NONE",
-          });
-        }
+        const timelinedState = isRegistered
+          ? this.getTimelinedState("Edit", [newTodo, oldTodo], "Edit", [
+              oldTodo,
+              newTodo,
+            ])
+          : {};
+        this.setState({
+          todos,
+          detailedTodo: "NONE",
+          ...timelinedState,
+        });
       });
     });
   };
@@ -226,29 +197,16 @@ export class TodoApp extends Component {
   editMultiple = (newTodos, isRegistered = true) => {
     this.server.updateSelection(newTodos).then(() => {
       this.server.getAllTodos().then((todos) => {
-        if (isRegistered) {
-          const timelineNode = {
-            action: {
-              type: "EditMultiple",
-              params: [todos],
-            },
-            counter: {
-              type: "EditMultiple",
-              params: [[...this.state.todos]],
-            },
-          };
-          this.setState((state) => ({
-            todos,
-            timeline: this.addToTimeline(timelineNode),
-            pointInTime: state.pointInTime + 1,
-            selectedTodos: [],
-          }));
-        } else {
-          this.setState({
-            todos,
-            selectedTodos: [],
-          });
-        }
+        const timelinedState = isRegistered
+          ? this.getTimelinedState("EditMultiple", [todos], "EditMultiple", [
+              [...this.state.todos],
+            ])
+          : {};
+        this.setState({
+          todos,
+          selectedTodos: [],
+          ...timelinedState,
+        });
       });
     });
   };
@@ -290,33 +248,22 @@ export class TodoApp extends Component {
   deleteMultiple = (selectedTodoIds, isRegistered = true) => {
     this.server.deleteMultiple(selectedTodoIds).then(() => {
       this.server.getAllTodos().then((todos) => {
-        if (isRegistered) {
-          const selectedTodos = this.state.todos.filter((todo) =>
-            selectedTodoIds.includes(todo.id)
-          );
-          const timelineNode = {
-            action: {
-              type: "DeleteMultiple",
-              params: [selectedTodoIds],
-            },
-            counter: {
-              type: "AddMultiple",
-              params: [selectedTodos],
-            },
-          };
-
-          this.setState((state) => ({
-            todos,
-            selectedTodos: [],
-            timeline: this.addToTimeline(timelineNode),
-            pointInTime: state.pointInTime + 1,
-          }));
-        } else {
-          this.setState({
-            todos,
-            selectedTodos: [],
-          });
-        }
+        const selectedTodos = this.state.todos.filter((todo) =>
+          selectedTodoIds.includes(todo.id)
+        );
+        const timelinedState = isRegistered
+          ? this.getTimelinedState(
+              "DeleteMultiple",
+              [selectedTodoIds],
+              "AddMultiple",
+              [selectedTodos]
+            )
+          : {};
+        this.setState({
+          todos,
+          selectedTodos: [],
+          ...timelinedState,
+        });
       });
     });
   };
@@ -331,9 +278,9 @@ export class TodoApp extends Component {
     const prevPoint = this.state.pointInTime - 1;
     const { counter } = this.state.timeline[prevPoint];
 
-    this.setState((state) => ({
+    this.setState({
       pointInTime: prevPoint,
-    }));
+    });
     this.dispatch(counter);
   };
 
