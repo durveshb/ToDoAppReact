@@ -15,6 +15,7 @@ export default function TodoDisplay(props) {
     deleteSelection,
     ...todoHandlers
   } = props.handlers;
+  
   const detailedTodo = props.todos.find(
     (todo) => todo.id === props.detailedTodo
   );

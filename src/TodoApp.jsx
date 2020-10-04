@@ -1,97 +1,101 @@
-import React, { Component } from "react";
+import React, { useState, useReducer } from "react";
 import { v4 as uuidv4 } from "uuid";
 import Flex from "./components/baseComponents/flexContainer/Flex";
 import Header from "./components/Header";
 import TodoDisplay from "./components/TodoDisplay";
 import Sidebar from "./components/Sidebar";
-import serverSide from "./backend";
+import useTimeline from "./hooks/useTimeline";
+import useServer from "./hooks/useServer";
 
-export class TodoApp extends Component {
-  constructor() {
-    super();
-    this.state = {
-      todos: [],
-      filter: "NONE",
-      detailedTodo: "NONE",
-      selectedTodos: [],
-      timeline: [],
-      pointInTime: 0,
-    };
-    this.server = null;
-    this.todoHandlers = {
-      complete: this.handleComplete,
-      delete: this.handleDelete,
-      showDetail: this.handleShowDetail,
-      closeDetail: this.handleCloseDetail,
-      changeDetail: this.handleChangeDetailHelper,
-      select: this.handleSelect,
-      completeSelection: this.handleCompleteSelection,
-      incompleteSelection: this.handleIncompleteSelection,
-      deleteSelection: this.deleteSelectionHelper,
-    };
-    this.sidebarHandlers = {
-      filter: this.handleFilter,
-      add: this.handleAddHelper,
-    };
-  }
+function compareTimestamp(a, b) {
+  return Date.parse(a.timestamp) - Date.parse(b.timestamp);
+}
 
-  componentDidMount() {
-    this.server = serverSide();
-    this.server.getAllTodos().then((todos) => {
-      this.setState({
-        todos,
+function todosReducer(state, { type, payload }) {
+  switch (type) {
+    case "Add":
+      return [...state, payload].sort(compareTimestamp);
+    case "Delete":
+      return state.filter((item) => item.id !== payload);
+    case "Edit":
+      return state.map((item) => {
+        if (item.id === payload.id) {
+          return { ...item, ...payload.updObj };
+        }
+        return item;
       });
-    });
-    window.addEventListener("keydown", this.handleKeypress);
+    case "AddMultiple":
+      return [...state, ...payload].sort(compareTimestamp);
+    case "DeleteMultiple":
+      return state.filter((item) => !payload.includes(item.id));
+    case "EditMultiple":
+      return state.map((item) => {
+        if (payload.ids.includes(item.id)) {
+          return { ...item, ...payload.updObj };
+        }
+        return item;
+      });
+    default:
+      return state;
+  }
+}
+
+export default function TodoApp(props) {
+  const [todos, todosDispatch] = useReducer(todosReducer, []);
+  const [filter, setFilter] = useState("NONE");
+  const [detailedView, setDetailedView] = useState("NONE");
+  const [selectedTodos, setSelectedTodos] = useState([]);
+  const [addToTimeline] = useTimeline([]);
+  const [enhancedDispatch] = useServer(todosDispatch);
+
+  const todoHandlers = {
+    complete: handleToggle,
+    delete: handleDelete,
+    showDetail: setDetailedView,
+    closeDetail: setDetailedView.bind(this, "NONE"),
+    changeDetail: handleChangeDetail,
+    completeSelection: handleToggleMultiple.bind(this, true),
+    incompleteSelection: handleToggleMultiple.bind(this, false),
+    deleteSelection: handleDeleteMultiple,
+    select: handleSelect,
+  };
+
+  const sidebarHandlers = {
+    filter: handleFilter,
+    add: handleAddHelper,
+  };
+
+  function getTimelineNode(
+    actionType,
+    actionPayload,
+    counterType,
+    counterPayload
+  ) {
+    return {
+      action: () =>
+        enhancedDispatch({
+          type: actionType,
+          payload: actionPayload,
+        }),
+      counter: () =>
+        enhancedDispatch({
+          type: counterType,
+          payload: counterPayload,
+        }),
+    };
   }
 
-  addToTimeline = (timelineNode) => {
-    const newTimeline = [
-      ...this.state.timeline.slice(0, this.state.pointInTime),
-    ];
-    newTimeline.push(timelineNode);
-    return newTimeline;
-  };
-
-  getTimelinedState = (
-    actionType,
-    actionParams,
-    counterType,
-    counterParams
-  ) => {
+  function handleFilter(newfil) {
+    const newFilter = newfil === filter ? "NONE" : newfil;
     const timelineNode = {
-      action: {
-        type: actionType,
-        params: actionParams,
-      },
-      counter: {
-        type: counterType,
-        params: counterParams,
-      },
+      action: () => setFilter(newFilter),
+      counter: () => setFilter(filter),
     };
+    timelineNode.action();
+    addToTimeline(timelineNode);
+  }
 
-    return {
-      timeline: this.addToTimeline(timelineNode),
-      pointInTime: this.state.pointInTime + 1,
-    };
-  };
-
-  handleFilter = (filter, isRegistered = true) => {
-    const newFilter = filter === this.state.filter ? "NONE" : filter;
-
-    const timelinedState = isRegistered
-      ? this.getTimelinedState("FilChange", [newFilter], "FilChange", [
-          this.state.filter,
-        ])
-      : {};
-
-    this.setState({
-      filter: newFilter,
-      ...timelinedState,
-    });
-  };
-
-  handleAddHelper = (body, urgency, category) => {
+  function handleAddHelper(body, urgency, category) {
     const newTodo = {
       id: uuidv4(),
       body,
@@ -101,248 +105,114 @@ export class TodoApp extends Component {
       pinned: false,
       timestamp: new Date().toLocaleString(),
     };
-    this.handleAdd(newTodo);
-  };
-
-  handleAdd = (newTodo, isRegistered = true) => {
-    this.server.addTodo(newTodo).then(() => {
-      this.server.getAllTodos().then((todos) => {
-        const timelinedState = isRegistered
-          ? this.getTimelinedState("Add", [newTodo], "Delete", [newTodo.id])
-          : {};
-        this.setState({
-          todos,
-          ...timelinedState,
-        });
-      });
-    });
-  };
-
-  handleDelete = (id, isRegistered = true) => {
-    this.server.deleteTodo(id).then(() => {
-      this.server.getAllTodos().then((todos) => {
-        const deletedTodo = this.state.todos.find((todo) => todo.id === id);
-        const timelinedState = isRegistered
-          ? this.getTimelinedState("Delete", [id], "Add", [deletedTodo])
-          : {};
-        this.setState({
-          todos,
-          ...timelinedState,
-        });
-      });
-    });
-  };
-
-  handleComplete = (id) => {
-    const targetTodo = this.state.todos.find((todo) => todo.id === id);
-    this.handleChangeDetailHelper(id, { completed: !targetTodo.completed });
-  };
-
-  handleShowDetail = (id) => {
-    this.setState({
-      detailedTodo: id,
-    });
-  };
-
-  handleCloseDetail = () => {
-    this.setState({
-      detailedTodo: "NONE",
-    });
-  };
-
-  handleChangeDetailHelper = (id, changeObj) => {
-    const targetTodo = this.state.todos.find((todo) => todo.id === id);
-    const newTodo = { ...targetTodo, ...changeObj };
-    this.handleChangeDetail(newTodo, targetTodo);
-  };
-
-  handleChangeDetail = (newTodo, oldTodo, isRegistered = true) => {
-    this.server.updateTodo(newTodo).then(() => {
-      this.server.getAllTodos().then((todos) => {
-        const timelinedState = isRegistered
-          ? this.getTimelinedState("Edit", [newTodo, oldTodo], "Edit", [
-              oldTodo,
-              newTodo,
-            ])
-          : {};
-        this.setState({
-          todos,
-          detailedTodo: "NONE",
-          ...timelinedState,
-        });
-      });
-    });
-  };
-
-  handleSelect = (id) => {
-    let selectedTodos = [];
-    if (id === -1) {
-      this.setState({
-        selectedTodos,
-      });
-      return;
-    }
-    if (this.state.selectedTodos.includes(id)) {
-      selectedTodos = this.state.selectedTodos.filter(
-        (todoId) => todoId !== id
-      );
-    } else {
-      selectedTodos = [...this.state.selectedTodos, id];
-    }
-    this.setState({
-      selectedTodos,
-    });
-  };
-
-  editMultiple = (newTodos, isRegistered = true) => {
-    this.server.updateSelection(newTodos).then(() => {
-      this.server.getAllTodos().then((todos) => {
-        const timelinedState = isRegistered
-          ? this.getTimelinedState("EditMultiple", [todos], "EditMultiple", [
-              [...this.state.todos],
-            ])
-          : {};
-        this.setState({
-          todos,
-          selectedTodos: [],
-          ...timelinedState,
-        });
-      });
-    });
-  };
-
-  addMultiple = (todos) => {
-    this.server.addMultiple(todos).then(() => {
-      this.server.getAllTodos().then((todos) => {
-        this.setState({
-          todos,
-          selectedTodos: [],
-        });
-      });
-    });
-  };
-
-  toggleSelection = (value) => {
-    let newTodos = this.state.todos.map((todo) => {
-      if (this.state.selectedTodos.includes(todo.id)) {
-        return { ...todo, completed: value };
-      }
-      return todo;
-    });
-
-    this.editMultiple(newTodos);
-  };
-
-  handleCompleteSelection = () => {
-    this.toggleSelection(true);
-  };
-
-  handleIncompleteSelection = () => {
-    this.toggleSelection(false);
-  };
-
-  deleteSelectionHelper = () => {
-    this.deleteMultiple([...this.state.selectedTodos]);
-  };
-
-  deleteMultiple = (selectedTodoIds, isRegistered = true) => {
-    this.server.deleteMultiple(selectedTodoIds).then(() => {
-      this.server.getAllTodos().then((todos) => {
-        const selectedTodos = this.state.todos.filter((todo) =>
-          selectedTodoIds.includes(todo.id)
-        );
-        const timelinedState = isRegistered
-          ? this.getTimelinedState(
-              "DeleteMultiple",
-              [selectedTodoIds],
-              "AddMultiple",
-              [selectedTodos]
-            )
-          : {};
-        this.setState({
-          todos,
-          selectedTodos: [],
-          ...timelinedState,
-        });
-      });
-    });
-  };
-
-  handleKeypress = (e) => {
-    if (!e.shiftKey && e.metaKey && e.key === "z") this.handleUndo();
-    else if (e.shiftKey && e.metaKey && e.key === "z") this.handleRedo();
-  };
-
-  handleUndo = () => {
-    if (this.state.pointInTime <= 0) return;
-    const prevPoint = this.state.pointInTime - 1;
-    const { counter } = this.state.timeline[prevPoint];
-
-    this.setState({
-      pointInTime: prevPoint,
-    });
-    this.dispatch(counter);
-  };
-
-  handleRedo = () => {
-    if (this.state.pointInTime >= this.state.timeline.length) return;
-    const pointInTime = this.state.pointInTime;
-    const { action } = this.state.timeline[pointInTime];
-
-    this.setState({
-      pointInTime: pointInTime + 1,
-    });
-    this.dispatch(action);
-  };
-
-  dispatch = ({ type, params }) => {
-    switch (type) {
-      case "Delete":
-        this.handleDelete(...params, false);
-        break;
-      case "Add":
-        this.handleAdd(...params, false);
-        break;
-      case "Edit":
-        this.handleChangeDetail(...params, false);
-        break;
-      case "AddMultiple":
-        this.addMultiple(...params);
-        break;
-      case "DeleteMultiple":
-        this.deleteMultiple(...params, false);
-        break;
-      case "EditMultiple":
-        this.editMultiple(...params, false);
-        break;
-      case "FilChange":
-        this.handleFilter(...params, false);
-        break;
-      default:
-    }
-  };
-
-  render() {
-    return (
-      <Flex type="col" className="container">
-        <Header />
-        <Flex type="row" className="main">
-          <TodoDisplay
-            todos={this.state.todos}
-            filter={this.state.filter}
-            detailedTodo={this.state.detailedTodo}
-            selectedTodos={this.state.selectedTodos}
-            handlers={this.todoHandlers}
-          />
-          <Sidebar
-            todos={this.state.todos}
-            filter={this.state.filter}
-            handlers={this.sidebarHandlers}
-          />
-        </Flex>
-      </Flex>
-    );
+    handleAddTodo(newTodo);
   }
-}
 
-export default TodoApp;
+  function handleAddTodo(newTodo) {
+    const timelineNode = getTimelineNode("Add", newTodo, "Delete", newTodo.id);
+    timelineNode.action();
+    addToTimeline(timelineNode);
+  }
+
+  function handleDelete(id) {
+    const timelineNode = getTimelineNode(
+      "Delete",
+      id,
+      "Add",
+      todos.find((todo) => todo.id === id)
+    );
+    timelineNode.action();
+    addToTimeline(timelineNode);
+  }
+
+  function handleToggle(id) {
+    const targetTodo = todos.find((todo) => todo.id === id);
+    handleUpdateDetail(id, { completed: !targetTodo.completed });
+  }
+
+  function handleUpdateDetail(id, updObj) {
+    const targetTodo = todos.find((todo) => todo.id === id);
+    const prevData = {};
+    Object.getOwnPropertyNames(updObj).forEach((prop) => {
+      prevData[prop] = targetTodo[prop];
+    });
+    const timelineNode = getTimelineNode(
+      "Edit",
+      {
+        id,
+        updObj,
+      },
+      "Edit",
+      {
+        id,
+        updObj: prevData,
+      }
+    );
+    timelineNode.action();
+    addToTimeline(timelineNode);
+  }
+
+  function handleChangeDetail(id, updObj) {
+    handleUpdateDetail(id, updObj);
+    setDetailedView("NONE");
+  }
+
+  function handleToggleMultiple(value) {
+    const timelineNode = getTimelineNode(
+      "EditMultiple",
+      {
+        ids: selectedTodos,
+        updObj: {
+          completed: value,
+        },
+      },
+      "EditMultiple",
+      {
+        ids: selectedTodos,
+        updObj: {
+          completed: !value,
+        },
+      }
+    );
+    timelineNode.action();
+    addToTimeline(timelineNode);
+  }
+
+  function handleDeleteMultiple() {
+    const targetTodos = todos.filter((todo) => selectedTodos.includes(todo.id));
+    const timelineNode = getTimelineNode(
+      "DeleteMultiple",
+      selectedTodos,
+      "AddMultiple",
+      targetTodos
+    );
+    timelineNode.action();
+    setSelectedTodos("NONE");
+    addToTimeline(timelineNode);
+  }
+
+  function handleSelect(id) {
+    if (id === -1) {
+      if (selectedTodos.length > 0) setSelectedTodos([]);
+    } else if (selectedTodos.includes(id)) {
+      setSelectedTodos((curr) => curr.filter((i) => i !== id));
+    } else {
+      setSelectedTodos((curr) => [...curr, id]);
+    }
+  }
+  return (
+    <Flex type="col" className="container">
+      <Header />
+      <Flex type="row" className="main">
+        <TodoDisplay
+          todos={todos}
+          filter={filter}
+          detailedTodo={detailedView}
+          selectedTodos={selectedTodos}
+          handlers={todoHandlers}
+        />
+        <Sidebar todos={todos} filter={filter} handlers={sidebarHandlers} />
+      </Flex>
+    </Flex>
+  );
+}

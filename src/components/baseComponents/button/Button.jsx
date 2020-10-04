@@ -9,21 +9,19 @@ import "./Button.css";
 // hancleClick
 // Children
 
-export default class Button extends React.Component {
-  className = `btn btn-${this.props.size}-${this.props.type} btn-${this.props.theme} ${this.props.className}`;
-  render() {
-    return (
-      <button className={this.className} onClick={this.props.handleClick}>
-        {this.props.children}
-      </button>
-    );
-  }
+export default function Button({
+  type = "pill",
+  theme = "None",
+  size = "md",
+  className = "",
+  handleClick = () => {},
+  children = "",
+}) {
+  const btnClass = `btn btn-${size}-${type} btn-${theme} ${className}`;
+
+  return (
+    <button className={btnClass} onClick={handleClick}>
+      {children}
+    </button>
+  );
 }
-Button.defaultProps = {
-  type: "pill",
-  theme: "",
-  size: "md",
-  classname: "",
-  handleClick: () => {},
-  children: "",
-};

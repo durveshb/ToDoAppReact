@@ -13,14 +13,6 @@ export function filterTodos(todos, selectedFilter) {
   return todos;
 }
 
-export const uuid = (function () {
-  let uid = 100;
-  return function () {
-    uid += 1;
-    return uid.toString();
-  };
-})();
-
 const months = [
   "January",
   "February",

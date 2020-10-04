@@ -1,21 +1,23 @@
 import React from "react";
 import "./icon.css";
 
-export default function Icon(props) {
-  const className = `icon icon-${props.size} ${
-    props.isSelected ? "icon--selected" : ""
-  } ${props.className}`;
+export default function Icon({
+  size = "md",
+  isSelected = false,
+  className = "",
+  src,
+  id,
+  handleClick,
+}) {
+  const iconClass = `icon icon-${size} ${
+    isSelected ? "icon--selected" : ""
+  } ${className}`;
   return (
     <img
-      src={props.src}
+      src={src}
       alt=""
-      className={className}
-      onClick={() => props.handleClick(props.id)}
+      className={iconClass}
+      onClick={() => handleClick(id)}
     />
   );
 }
-Icon.defaultProps = {
-  size: "md",
-  isSelected: false,
-  className: "",
-};

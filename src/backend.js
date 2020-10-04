@@ -37,22 +37,32 @@ export default function serverSide() {
     });
   }
 
-  function updateTodo(newTodo) {
-    return database.then((db) => {
-      const tx = db.transaction("TodoStore", "readwrite");
-      const store = tx.objectStore("TodoStore");
-      store.put(newTodo);
-      return tx.complete;
-    });
+  function updateTodo(id, updObj) {
+    let tx, store;
+    return database
+      .then((db) => {
+        tx = db.transaction("TodoStore", "readwrite");
+        store = tx.objectStore("TodoStore");
+        return store.get(id);
+      })
+      .then((todo) => {
+        store.put({ ...todo, ...updObj });
+        return tx.complete;
+      });
   }
 
-  function updateSelection(newTodos) {
-    return database.then((db) => {
-      const tx = db.transaction("TodoStore", "readwrite");
-      const store = tx.objectStore("TodoStore");
-      newTodos.forEach((newTodo) => store.put(newTodo));
-      return tx.complete;
-    });
+  function updateSelection(todoIds, updObj) {
+    let tx, store;
+    return database
+      .then((db) => {
+        tx = db.transaction("TodoStore", "readwrite");
+        store = tx.objectStore("TodoStore");
+        return Promise.all(todoIds.map((id) => store.get(id)));
+      })
+      .then((todos) => {
+        todos.map((todo) => store.put({ ...todo, ...updObj }));
+        return tx.complete;
+      });
   }
 
   function addMultiple(newTodos) {
